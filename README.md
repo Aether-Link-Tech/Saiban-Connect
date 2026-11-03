@@ -20,6 +20,26 @@ Employee attendance and field management app for **SAIBAAN Development Organizat
 - `docs/`: architecture, schema, workflows, policies, security checklist
 - `scripts/setup_android.ps1`: one-time Android/Firebase setup
 
+## Run everything locally (no cloud account needed)
+Requires Node.js, Java 21, Firebase CLI and Flutter.
+```
+powershell -ExecutionPolicy Bypass -File scripts/start-local.ps1
+```
+This starts the Firebase emulators, loads demo data and opens the app in Chrome (http://localhost:8686). The emulator dashboard is at http://localhost:4000.
+
+| Login | Role |
+|---|---|
+| admin@saibaan.demo | Administrator |
+| hr@saibaan.demo | HR |
+| manager@saibaan.demo | Manager |
+| supervisor@saibaan.demo | Supervisor |
+| employee@saibaan.demo / employee2@saibaan.demo | Employee |
+| newjoiner@saibaan.demo | Pending registration |
+
+All demo accounts use the password `Demo@12345`. You can also sign in with a phone number, e.g. `03000000005`. In the browser, fingerprint and camera are replaced by fallbacks, and push notifications only work on a real phone.
+
+Tests: `npm test` (backend unit tests), `node tools/e2e-emulator.js` (43 end-to-end checks against the emulators), and `flutter test` (18 app tests, including every role's main screens).
+
 ## Setup
 1. Install Flutter (stable), Android Studio, Node.js 20, Firebase CLI and FlutterFire CLI.
 2. Create a Firebase project (Blaze plan, required for Cloud Functions). Enable Email/Password authentication, Firestore, Storage and Cloud Messaging.

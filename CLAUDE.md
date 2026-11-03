@@ -23,6 +23,12 @@ The signed scope is the proposal (PKR 150,000, Android only). Out of scope unles
 
 ## Commands
 ```bash
+# Everything locally (emulators + demo data + app in Chrome) — no cloud project needed
+powershell -ExecutionPolicy Bypass -File scripts/start-local.ps1          # add -Test for e2e, -NoApp for backend only
+#   Emulator UI http://localhost:4000 · demo logins <role>@saibaan.demo / Demo@12345
+#   App: flutter run -d chrome --web-port 8686 --dart-define=USE_EMULATOR=true
+cd backend/functions && node tools/e2e-emulator.js   # end-to-end tests (needs fresh emulators + seed)
+
 # Backend
 cd backend/functions && npm install
 npm test            # tsc + node:test on lib/test
@@ -51,6 +57,11 @@ First-time Android setup: see `scripts/setup_android.ps1` (runs `flutter create`
 ## Policies not yet confirmed by the client (proposal §11)
 Implemented as configurable defaults in `config/policy` (`backend/functions/src/logic/policyModel.ts`, editable in-app by Admin → Policy settings). Do not hard-code these elsewhere:
 leave approval rule, GPS interval, geofence default radius, gallery vs camera photos, biometric fallback, correction roles, location retention. Shifts, working days, holidays, grace periods and late/absence rules are **not implemented** pending client decisions.
+
+## Local / emulator mode
+- `--dart-define=USE_EMULATOR=true` (`lib/core/config/env.dart`) points the app at the emulators (project `demo-saibaan`), disables push, and uses the fixed device ID `demo-device-0001` that the seed script approves.
+- Web is supported only for local demos: `LocalDb` falls back to in-memory, biometrics report unavailable (seeded policy allows the fallback), uploads use bytes (no `dart:io`).
+- Widget tests render real screens per role with `fake_cloud_firestore` via `firestoreOverride` and provider overrides (`test/screens_test.dart`).
 
 ## Conventions
 - TypeScript strict; validate all callable input with helpers in `core/validate.ts`; throw `HttpsError` with user-readable messages.
