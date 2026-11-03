@@ -1,1 +1,16 @@
-Structured starter scaffold only; not a finished production app. Complete implementation, configuration and security review before release.
+SAIBAAN Connect — project status
+
+Implemented (all proposal section 4 features):
+  - Backend: Cloud Functions, Firestore/Storage rules, indexes, scheduled jobs, unit tests
+  - Mobile: all role-based screens and services (auth, attendance, tracking, offline sync,
+    photos, leave, notifications, team views, administration, policy settings)
+
+Not yet done:
+  - Compile and run: code was written without a local Flutter/Node toolchain. Run
+    `npm test` (backend/functions) and `flutter analyze && flutter test` (mobile) first.
+  - Firebase project creation and `scripts/setup_android.ps1` (generates the remaining Android files).
+  - Client confirmation of the policies in section 11 (defaults are configurable in-app).
+  - Not implemented pending client rules: shifts, working days, holidays, grace periods,
+    late/early/absence calculation.
+  - Device testing (biometrics, background tracking, battery optimisation), App Check,
+    release signing, Play Store listing and data-safety form.

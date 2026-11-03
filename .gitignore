@@ -14,3 +14,13 @@ service-account*.json
 google-services.json
 GoogleService-Info.plist
 .DS_Store
+
+# Flutter / Android
+local.properties
+.gradle/
+*.iml
+.idea/
+mobile/lib/firebase_options.dart
+
+# Functions build output
+backend/functions/lib/
