@@ -1,48 +1,63 @@
 rules_version = '2';
+// SAIBAAN Connect — Firestore access rules.
+// Roles and account status come from custom claims set by Cloud Functions.
+// All business writes go through Cloud Functions (Admin SDK bypasses these rules);
+// clients only read, plus marking their own notifications as read.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function isAdmin() {
-      return signedIn() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
+    function active() { return signedIn() && request.auth.token.status == 'active'; }
+    function hasRole(roles) { return active() && request.auth.token.role in roles; }
+    function isAdmin() { return hasRole(['admin']); }
+    function isHrOrAdmin() { return hasRole(['hr', 'admin']); }
+    function isOwner() { return signedIn() && resource.data.uid == request.auth.uid; }
+    // Manager / supervisor of the employee the record belongs to (denormalized by the backend).
+    function isViewer() { return active() && request.auth.uid in resource.data.viewerUids; }
+    function canSeeEmployeeRecord() { return isOwner() || isHrOrAdmin() || isViewer(); }
+
     match /users/{uid} {
-      allow read: if request.auth.uid == uid || isAdmin();
-      allow create: if signedIn() && request.auth.uid == uid
-        && request.resource.data.role == 'pending'
-        && request.resource.data.accountStatus == 'pending';
-      allow update, delete: if isAdmin();
-    }
-    match /employees/{uid} {
-      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
-      allow write: if isAdmin();
-    }
-    match /sites/{siteId} {
-      allow read: if signedIn();
-      allow write: if isAdmin();
-    }
-    // Baseline: sensitive writes must go through trusted Cloud Functions.
-    match /attendanceEvents/{id} {
-      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow read: if (signedIn() && request.auth.uid == uid)
+        || isHrOrAdmin()
+        || (active() && resource.data.managerUid == request.auth.uid)
+        || (active() && resource.data.supervisorUid == request.auth.uid);
       allow write: if false;
     }
-    match /attendanceDays/{id} {
-      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+
+    match /sites/{id} { allow read: if active(); allow write: if false; }
+    match /departments/{id} { allow read: if active(); allow write: if false; }
+    match /config/{id} { allow read: if active(); allow write: if false; }
+
+    match /deviceRequests/{id} {
+      allow read: if isOwner() || isHrOrAdmin();
       allow write: if false;
     }
-    match /locationPoints/{id} {
-      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+
+    match /attendanceDays/{dayId} {
+      // Own day documents can be fetched by ID even before they exist ({uid}_{date}).
+      allow get: if (signedIn() && dayId.matches(request.auth.uid + '_.*')) || (resource != null && canSeeEmployeeRecord());
+      allow list: if canSeeEmployeeRecord();
       allow write: if false;
     }
-    match /leaveRequests/{id} {
-      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+    match /attendanceEvents/{id} { allow read: if canSeeEmployeeRecord(); allow write: if false; }
+    match /locationPoints/{id} { allow read: if canSeeEmployeeRecord(); allow write: if false; }
+    match /liveLocations/{uid} {
+      allow get: if (signedIn() && request.auth.uid == uid) || (resource != null && canSeeEmployeeRecord());
+      allow list: if canSeeEmployeeRecord();
       allow write: if false;
     }
-    match /auditLogs/{id} { allow read: if isAdmin(); allow write: if false; }
+    match /fieldPhotos/{id} { allow read: if canSeeEmployeeRecord(); allow write: if false; }
+    match /leaveRequests/{id} { allow read: if canSeeEmployeeRecord(); allow write: if false; }
+
     match /notifications/{id} {
       allow read: if signedIn() && resource.data.recipientUid == request.auth.uid;
-      allow write: if false;
+      allow update: if signedIn() && resource.data.recipientUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow create, delete: if false;
     }
+
+    match /auditLogs/{id} { allow read: if isHrOrAdmin(); allow write: if false; }
+
+    // phoneIndex, fcmTokens and anything else: backend only.
     match /{document=**} { allow read, write: if false; }
   }
 }

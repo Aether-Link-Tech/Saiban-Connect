@@ -1,21 +1,14 @@
-import { initializeApp } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { onCall, HttpsError } from "firebase-functions/v2/https";
+// Initializes Firebase Admin and global function options (region) first.
+import "./core/firebase";
 
-initializeApp();
-const db = getFirestore();
-
-export const healthCheck = onCall(async (request) => {
-  if (!request.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
-  return { ok: true, service: "saibaan-connect", uid: request.auth.uid };
-});
-
-// Call this helper only after a trusted function has validated actor permissions.
-export async function writeAuditLog(
-  actorUid: string, action: string, targetType: string, targetId: string
-): Promise<void> {
-  await db.collection("auditLogs").add({
-    actorUid, action, targetType, targetId,
-    createdAt: FieldValue.serverTimestamp()
-  });
-}
+export { submitRegistration, resolveLoginEmail, reviewRegistration } from "./functions/registration";
+export { updateEmployee } from "./functions/employees";
+export { requestDeviceChange, reviewDeviceChange } from "./functions/devices";
+export { upsertSite, upsertDepartment } from "./functions/sites";
+export { syncAttendanceEvents, reviewAttendanceEvent, correctAttendance } from "./functions/attendance";
+export { uploadLocationPoints } from "./functions/location";
+export { registerFieldPhoto } from "./functions/photos";
+export { submitLeaveRequest, cancelLeaveRequest, reviewLeaveRequest } from "./functions/leave";
+export { registerFcmToken, unregisterFcmToken } from "./functions/notifications";
+export { updatePolicy } from "./functions/policyAdmin";
+export { markMissingCheckouts, purgeLocationHistory } from "./functions/scheduled";

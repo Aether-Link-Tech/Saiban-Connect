@@ -1,27 +1,33 @@
 rules_version = '2';
+// Uploads go to per-user folders. Metadata records are created by Cloud Functions
+// after upload (registerFieldPhoto, submitLeaveRequest) which re-check the path.
 service firebase.storage {
   match /b/{bucket}/o {
     function signedIn() { return request.auth != null; }
-    function isAdmin() {
-      return signedIn() &&
-        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    function active() { return signedIn() && request.auth.token.status == 'active'; }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+    function isHrOrAdmin() { return active() && request.auth.token.role in ['hr', 'admin']; }
+    function employee(uid) { return firestore.get(/databases/(default)/documents/users/$(uid)).data; }
+    function isLeadOf(uid) {
+      return active() && (employee(uid).managerUid == request.auth.uid
+        || employee(uid).supervisorUid == request.auth.uid);
     }
+    function isManagerOf(uid) { return active() && employee(uid).managerUid == request.auth.uid; }
+    function isImage() { return request.resource.contentType.matches('image/(jpeg|png|webp)'); }
+
+    // Profile photo uploaded during registration (account still pending).
     match /employee-photos/{uid}/{file} {
-      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
-      allow write: if signedIn() && request.auth.uid == uid
-        && request.resource.size < 5 * 1024 * 1024
-        && request.resource.contentType.matches('image/.*');
+      allow read: if isSelf(uid) || isHrOrAdmin() || isLeadOf(uid);
+      allow create, update: if isSelf(uid) && isImage() && request.resource.size < 5 * 1024 * 1024;
     }
     match /field-photos/{uid}/{file} {
-      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
-      allow write: if signedIn() && request.auth.uid == uid
-        && request.resource.size < 10 * 1024 * 1024
-        && request.resource.contentType.matches('image/.*');
+      allow read: if isSelf(uid) || isHrOrAdmin() || isLeadOf(uid);
+      allow create: if isSelf(uid) && active() && isImage() && request.resource.size < 10 * 1024 * 1024;
     }
     match /leave-attachments/{uid}/{file} {
-      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
-      allow write: if signedIn() && request.auth.uid == uid
-        && request.resource.size < 10 * 1024 * 1024;
+      allow read: if isSelf(uid) || isHrOrAdmin() || isManagerOf(uid);
+      allow create: if isSelf(uid) && active() && request.resource.size < 10 * 1024 * 1024
+        && (isImage() || request.resource.contentType == 'application/pdf');
     }
     match /{all=**} { allow read, write: if false; }
   }

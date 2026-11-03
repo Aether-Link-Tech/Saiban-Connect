@@ -1,17 +1,33 @@
-name: Flutter CI
+name: CI
 on:
   push:
-    paths: ["mobile/**"]
+    paths: ["mobile/**", "backend/**", ".github/workflows/**"]
   pull_request:
-    paths: ["mobile/**"]
+    paths: ["mobile/**", "backend/**", ".github/workflows/**"]
 jobs:
-  analyze-test:
+  mobile:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - run: cd mobile && flutter pub get
-      - run: cd mobile && flutter analyze
-      - run: cd mobile && flutter test
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  functions:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/functions
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm test

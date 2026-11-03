@@ -1,11 +1,43 @@
 {
   "indexes": [
-    {"collectionGroup":"attendanceEvents","queryScope":"COLLECTION","fields":[
-      {"fieldPath":"uid","order":"ASCENDING"},{"fieldPath":"deviceTime","order":"DESCENDING"}]},
-    {"collectionGroup":"leaveRequests","queryScope":"COLLECTION","fields":[
-      {"fieldPath":"uid","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
-    {"collectionGroup":"locationPoints","queryScope":"COLLECTION","fields":[
-      {"fieldPath":"uid","order":"ASCENDING"},{"fieldPath":"capturedAt","order":"DESCENDING"}]}
+    { "collectionGroup": "attendanceDays", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "uid", "order": "ASCENDING" }, { "fieldPath": "dateKey", "order": "DESCENDING" } ] },
+    { "collectionGroup": "attendanceDays", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "viewerUids", "arrayConfig": "CONTAINS" }, { "fieldPath": "uid", "order": "ASCENDING" },
+      { "fieldPath": "dateKey", "order": "DESCENDING" } ] },
+    { "collectionGroup": "attendanceDays", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "viewerUids", "arrayConfig": "CONTAINS" }, { "fieldPath": "dateKey", "order": "ASCENDING" } ] },
+
+    { "collectionGroup": "attendanceEvents", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "reviewStatus", "order": "ASCENDING" }, { "fieldPath": "serverReceivedAt", "order": "DESCENDING" } ] },
+    { "collectionGroup": "attendanceEvents", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "viewerUids", "arrayConfig": "CONTAINS" }, { "fieldPath": "reviewStatus", "order": "ASCENDING" },
+      { "fieldPath": "serverReceivedAt", "order": "DESCENDING" } ] },
+
+    { "collectionGroup": "fieldPhotos", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "uid", "order": "ASCENDING" }, { "fieldPath": "uploadedAt", "order": "DESCENDING" } ] },
+    { "collectionGroup": "fieldPhotos", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "viewerUids", "arrayConfig": "CONTAINS" }, { "fieldPath": "uploadedAt", "order": "DESCENDING" } ] },
+    { "collectionGroup": "fieldPhotos", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "viewerUids", "arrayConfig": "CONTAINS" }, { "fieldPath": "uid", "order": "ASCENDING" },
+      { "fieldPath": "uploadedAt", "order": "DESCENDING" } ] },
+
+    { "collectionGroup": "leaveRequests", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "uid", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] },
+    { "collectionGroup": "leaveRequests", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "viewerUids", "arrayConfig": "CONTAINS" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] },
+
+    { "collectionGroup": "notifications", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "recipientUid", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] },
+
+    { "collectionGroup": "deviceRequests", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" } ] },
+
+    { "collectionGroup": "users", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "accountStatus", "order": "ASCENDING" }, { "fieldPath": "requestedAt", "order": "DESCENDING" } ] },
+
+    { "collectionGroup": "locationPoints", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "uid", "order": "ASCENDING" }, { "fieldPath": "capturedAt", "order": "DESCENDING" } ] }
   ],
-  "fieldOverrides":[]
+  "fieldOverrides": []
 }
