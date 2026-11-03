@@ -126,7 +126,7 @@ class _LeaveFormScreenState extends ConsumerState<LeaveFormScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             DropdownButtonFormField<String>(
-              value: _type,
+              initialValue: _type,
               decoration: const InputDecoration(labelText: 'Leave type'),
               items: leaveTypeLabels.entries
                   .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))

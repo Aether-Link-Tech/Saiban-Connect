@@ -131,7 +131,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
             ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String?>(
-            value: _siteId,
+            initialValue: _siteId,
             decoration: const InputDecoration(labelText: 'Site'),
             items: [
               const DropdownMenuItem<String?>(value: null, child: Text('Detect from my location')),

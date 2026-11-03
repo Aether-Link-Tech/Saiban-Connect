@@ -119,7 +119,8 @@ class _EmployeeEditorScreenState extends ConsumerState<EmployeeEditorScreen> {
           ]),
           const SizedBox(height: 24),
           DropdownButtonFormField<UserRole>(
-            value: assignableRoles.contains(_role) ? _role : null,
+            key: ValueKey('role-${assignableRoles.contains(_role) ? _role : null}'),
+            initialValue: assignableRoles.contains(_role) ? _role : null,
             decoration: const InputDecoration(labelText: 'Role'),
             items: assignableRoles.map((r) => DropdownMenuItem(value: r, child: Text(r.label))).toList(),
             onChanged: (isAdmin || widget.registration) ? (v) => setState(() => _role = v ?? _role) : null,
@@ -130,7 +131,8 @@ class _EmployeeEditorScreenState extends ConsumerState<EmployeeEditorScreen> {
           TextField(controller: _designation, decoration: const InputDecoration(labelText: 'Designation')),
           const SizedBox(height: 16),
           DropdownButtonFormField<String?>(
-            value: valid(_departmentId, departments.map((d) => d.id)),
+            key: ValueKey('dept-${valid(_departmentId, departments.map((d) => d.id))}'),
+            initialValue: valid(_departmentId, departments.map((d) => d.id)),
             decoration: const InputDecoration(labelText: 'Department'),
             items: [
               const DropdownMenuItem<String?>(value: null, child: Text('None')),
@@ -141,7 +143,8 @@ class _EmployeeEditorScreenState extends ConsumerState<EmployeeEditorScreen> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String?>(
-            value: valid(_managerUid, managers.map((u) => u.uid)),
+            key: ValueKey('mgr-${valid(_managerUid, managers.map((u) => u.uid))}'),
+            initialValue: valid(_managerUid, managers.map((u) => u.uid)),
             decoration: const InputDecoration(labelText: 'Manager (approves leave)'),
             items: [
               const DropdownMenuItem<String?>(value: null, child: Text('None')),
@@ -152,7 +155,8 @@ class _EmployeeEditorScreenState extends ConsumerState<EmployeeEditorScreen> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String?>(
-            value: valid(_supervisorUid, supervisors.map((u) => u.uid)),
+            key: ValueKey('sup-${valid(_supervisorUid, supervisors.map((u) => u.uid))}'),
+            initialValue: valid(_supervisorUid, supervisors.map((u) => u.uid)),
             decoration: const InputDecoration(labelText: 'Supervisor (field oversight)'),
             items: [
               const DropdownMenuItem<String?>(value: null, child: Text('None')),
