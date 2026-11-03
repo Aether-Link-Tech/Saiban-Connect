@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'core/constants/app_constants.dart';
+import 'core/providers.dart';
+import 'core/theme/app_theme.dart';
+import 'features/auth/presentation/screens/auth_gate.dart';
+
 class SaibaanConnectApp extends StatelessWidget {
-  const SaibaanConnectApp({super.key});
+  const SaibaanConnectApp({super.key, this.home});
+
+  /// Overridable for widget tests.
+  final Widget? home;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'SAIBAAN Connect',
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF168B52),
-        primary: const Color(0xFF142B5A),
-      ),
-      useMaterial3: true,
-    ),
-    home: const Scaffold(
-      body: Center(child: Text('SAIBAAN Connect — implementation scaffold')),
-    ),
-  );
+        title: AppConstants.appName,
+        debugShowCheckedModeBanner: false,
+        scaffoldMessengerKey: scaffoldMessengerKey,
+        theme: AppTheme.light(),
+        home: home ?? const AuthGate(),
+      );
 }
