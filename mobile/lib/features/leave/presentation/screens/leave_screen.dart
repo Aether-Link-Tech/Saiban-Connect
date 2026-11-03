@@ -26,6 +26,7 @@ class LeaveScreen extends ConsumerWidget {
       showName: false,
     );
     final fab = FloatingActionButton.extended(
+      heroTag: null,
       onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LeaveFormScreen())),
       icon: const Icon(Icons.add),
       label: const Text('Apply'),
@@ -35,9 +36,8 @@ class LeaveScreen extends ConsumerWidget {
       return Scaffold(appBar: AppBar(title: const Text('Leave')), body: mine, floatingActionButton: fab);
     }
 
-    final reviewQuery = scopeForViewer(fs.collection('leaveRequests'), me)
-        .orderBy('createdAt', descending: true)
-        .limit(100);
+    final reviewQuery =
+        scopeForViewer(fs.collection('leaveRequests'), me).orderBy('createdAt', descending: true).limit(100);
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -46,9 +46,10 @@ class LeaveScreen extends ConsumerWidget {
           bottom: const TabBar(tabs: [Tab(text: 'To review'), Tab(text: 'My requests')]),
         ),
         body: TabBarView(children: [
-          _ReviewTab(stream: reviewQuery.snapshots().map(
-                (s) => s.docs.map(LeaveRequest.fromDoc).where((r) => r.uid != me.uid).toList(),
-              )),
+          _ReviewTab(
+              stream: reviewQuery.snapshots().map(
+                    (s) => s.docs.map(LeaveRequest.fromDoc).where((r) => r.uid != me.uid).toList(),
+                  )),
           mine,
         ]),
         floatingActionButton: fab,

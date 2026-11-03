@@ -119,6 +119,7 @@ class _EmployeeEditorScreenState extends ConsumerState<EmployeeEditorScreen> {
           ]),
           const SizedBox(height: 24),
           DropdownButtonFormField<UserRole>(
+            isExpanded: true,
             key: ValueKey('role-${assignableRoles.contains(_role) ? _role : null}'),
             initialValue: assignableRoles.contains(_role) ? _role : null,
             decoration: const InputDecoration(labelText: 'Role'),
@@ -131,6 +132,7 @@ class _EmployeeEditorScreenState extends ConsumerState<EmployeeEditorScreen> {
           TextField(controller: _designation, decoration: const InputDecoration(labelText: 'Designation')),
           const SizedBox(height: 16),
           DropdownButtonFormField<String?>(
+            isExpanded: true,
             key: ValueKey('dept-${valid(_departmentId, departments.map((d) => d.id))}'),
             initialValue: valid(_departmentId, departments.map((d) => d.id)),
             decoration: const InputDecoration(labelText: 'Department'),
@@ -143,25 +145,27 @@ class _EmployeeEditorScreenState extends ConsumerState<EmployeeEditorScreen> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String?>(
+            isExpanded: true,
             key: ValueKey('mgr-${valid(_managerUid, managers.map((u) => u.uid))}'),
             initialValue: valid(_managerUid, managers.map((u) => u.uid)),
             decoration: const InputDecoration(labelText: 'Manager (approves leave)'),
             items: [
               const DropdownMenuItem<String?>(value: null, child: Text('None')),
               for (final u in managers)
-                DropdownMenuItem<String?>(value: u.uid, child: Text('${u.displayName} (${u.role.label})')),
+                DropdownMenuItem<String?>(value: u.uid, child: Text('${u.displayName} (${u.role.label})', overflow: TextOverflow.ellipsis)),
             ],
             onChanged: (v) => setState(() => _managerUid = v),
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String?>(
+            isExpanded: true,
             key: ValueKey('sup-${valid(_supervisorUid, supervisors.map((u) => u.uid))}'),
             initialValue: valid(_supervisorUid, supervisors.map((u) => u.uid)),
             decoration: const InputDecoration(labelText: 'Supervisor (field oversight)'),
             items: [
               const DropdownMenuItem<String?>(value: null, child: Text('None')),
               for (final u in supervisors)
-                DropdownMenuItem<String?>(value: u.uid, child: Text('${u.displayName} (${u.role.label})')),
+                DropdownMenuItem<String?>(value: u.uid, child: Text('${u.displayName} (${u.role.label})', overflow: TextOverflow.ellipsis)),
             ],
             onChanged: (v) => setState(() => _supervisorUid = v),
           ),

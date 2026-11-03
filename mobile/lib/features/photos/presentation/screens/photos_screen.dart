@@ -27,6 +27,7 @@ class MyPhotosScreen extends ConsumerWidget {
         emptyMessage: 'No site photos yet. Tap Upload to add one.',
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PhotoUploadScreen())),
         icon: const Icon(Icons.add_a_photo),
         label: const Text('Upload'),

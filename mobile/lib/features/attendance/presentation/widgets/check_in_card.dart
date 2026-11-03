@@ -51,8 +51,14 @@ class _CheckInCardState extends ConsumerState<CheckInCard> {
           children: [
             Row(
               children: [
-                Text("Today's attendance", style: Theme.of(context).textTheme.titleMedium),
-                const Spacer(),
+                Expanded(
+                  child: Text(
+                    "Today's attendance",
+                    style: Theme.of(context).textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 StatusChip(status, color: color),
               ],
             ),

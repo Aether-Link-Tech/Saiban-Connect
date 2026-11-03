@@ -61,6 +61,7 @@ class DepartmentsScreen extends ConsumerWidget {
               ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () => _edit(context, ref),
         icon: const Icon(Icons.add),
         label: const Text('Add'),

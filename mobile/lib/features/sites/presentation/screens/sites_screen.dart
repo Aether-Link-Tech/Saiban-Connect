@@ -45,6 +45,7 @@ class SitesScreen extends ConsumerWidget {
               ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () => open(),
         icon: const Icon(Icons.add_location_alt),
         label: const Text('Add site'),
