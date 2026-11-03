@@ -33,7 +33,7 @@ export const markMissingCheckouts = onSchedule({ schedule: "55 23 * * *", timeZo
 
 /** Deletes location history older than the configured retention period. */
 export const purgeLocationHistory = onSchedule({ schedule: "30 2 * * *", timeZone: ORG_TIME_ZONE }, async () => {
-  const policy = await loadPolicy(true);
+  const policy = await loadPolicy();
   const cutoff = Timestamp.fromMillis(Date.now() - policy.tracking.locationRetentionDays * 86_400_000);
   let deleted = 0;
   for (let round = 0; round < 40; round++) {
