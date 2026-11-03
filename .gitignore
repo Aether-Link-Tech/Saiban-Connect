@@ -1,0 +1,16 @@
+build/
+.dart_tool/
+.flutter-plugins*
+.packages
+.pub/
+node_modules/
+.firebase/
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+.DS_Store
