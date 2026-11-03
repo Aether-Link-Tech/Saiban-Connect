@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -20,7 +19,7 @@ class PhotoUploadScreen extends ConsumerStatefulWidget {
 
 class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
   final _caption = TextEditingController();
-  File? _file;
+  Uint8List? _file;
   String _source = 'camera';
   DateTime? _capturedAt;
   String? _siteId;
@@ -35,11 +34,12 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
   Future<void> _pick(ImageSource source) async {
     final x = await ImagePicker().pickImage(source: source, maxWidth: 1920, imageQuality: 80);
     if (x == null) return;
-    final file = File(x.path);
+    final bytes = await x.readAsBytes();
+    final capturedAt = source == ImageSource.camera ? DateTime.now() : await x.lastModified();
     setState(() {
-      _file = file;
+      _file = bytes;
       _source = source == ImageSource.camera ? 'camera' : 'gallery';
-      _capturedAt = source == ImageSource.camera ? DateTime.now() : file.lastModifiedSync();
+      _capturedAt = capturedAt;
     });
   }
 
@@ -55,7 +55,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
 
       final photoId = const Uuid().v4();
       final path = 'field-photos/$uid/$photoId.jpg';
-      await FirebaseStorage.instance.ref(path).putFile(file, SettableMetadata(contentType: 'image/jpeg'));
+      await FirebaseStorage.instance.ref(path).putData(file, SettableMetadata(contentType: 'image/jpeg'));
       await ref.read(apiProvider).call('registerFieldPhoto', {
         'photoId': photoId,
         'storagePath': path,
@@ -101,7 +101,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
               clipBehavior: Clip.antiAlias,
               child: _file == null
                   ? const Center(child: Icon(Icons.photo_camera_outlined, size: 64))
-                  : Image.file(_file!, fit: BoxFit.cover),
+                  : Image.memory(_file!, fit: BoxFit.cover),
             ),
           ),
           const SizedBox(height: 12),
@@ -131,6 +131,7 @@ class _PhotoUploadScreenState extends ConsumerState<PhotoUploadScreen> {
             ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String?>(
+            isExpanded: true,
             initialValue: _siteId,
             decoration: const InputDecoration(labelText: 'Site'),
             items: [

@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/config/env.dart';
 import '../../data/datasources/local/local_db.dart';
 import '../../domain/entities/app_policy.dart';
 import 'sync_service.dart';
@@ -34,7 +34,7 @@ class TrackingService extends ChangeNotifier {
     _intervalSeconds = policy.trackingIntervalSeconds;
     _lastSaved = null;
 
-    final LocationSettings settings = Platform.isAndroid
+    final LocationSettings settings = Env.isAndroid
         ? AndroidSettings(
             accuracy: LocationAccuracy.high,
             distanceFilter: policy.distanceFilterM,

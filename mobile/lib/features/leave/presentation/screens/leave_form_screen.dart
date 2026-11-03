@@ -1,10 +1,7 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/errors/app_exception.dart';
@@ -66,9 +63,10 @@ class _LeaveFormScreenState extends ConsumerState<LeaveFormScreen> {
     final res = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['jpg', 'jpeg', 'png', 'pdf'],
+      withData: true,
     );
     final file = res?.files.single;
-    if (file == null || file.path == null) return;
+    if (file == null || file.bytes == null) return;
     if (file.size > 10 * 1024 * 1024) {
       if (mounted) showSnack(context, 'Files must be smaller than 10 MB.');
       return;
@@ -90,11 +88,11 @@ class _LeaveFormScreenState extends ConsumerState<LeaveFormScreen> {
       if (uid == null) throw const AppException('Please sign in again.');
       final paths = <String>[];
       for (final f in _files) {
-        final ext = p.extension(f.path!).replaceFirst('.', '').toLowerCase();
+        final ext = (f.extension ?? 'jpg').toLowerCase();
         final path = 'leave-attachments/$uid/${const Uuid().v4()}.$ext';
         await FirebaseStorage.instance
             .ref(path)
-            .putFile(File(f.path!), SettableMetadata(contentType: _contentType(ext)));
+            .putData(f.bytes!, SettableMetadata(contentType: _contentType(ext)));
         paths.add(path);
       }
       await ref.read(apiProvider).call('submitLeaveRequest', {
@@ -126,6 +124,7 @@ class _LeaveFormScreenState extends ConsumerState<LeaveFormScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             DropdownButtonFormField<String>(
+              isExpanded: true,
               initialValue: _type,
               decoration: const InputDecoration(labelText: 'Leave type'),
               items: leaveTypeLabels.entries

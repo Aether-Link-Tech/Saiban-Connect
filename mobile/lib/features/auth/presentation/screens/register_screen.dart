@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +30,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
-  File? _photo;
+  Uint8List? _photo;
   bool _busy = false;
 
   @override
@@ -63,7 +62,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       maxWidth: 800,
       imageQuality: 80,
     );
-    if (x != null) setState(() => _photo = File(x.path));
+    if (x == null) return;
+    final bytes = await x.readAsBytes();
+    setState(() => _photo = bytes);
   }
 
   Future<void> _submit() async {
@@ -91,7 +92,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         photoPath = 'employee-photos/${user.uid}/profile.jpg';
         await FirebaseStorage.instance
             .ref(photoPath)
-            .putFile(_photo!, SettableMetadata(contentType: 'image/jpeg'));
+            .putData(_photo!, SettableMetadata(contentType: 'image/jpeg'));
       } else {
         photoPath = ref.read(profileProvider).valueOrNull?.photoPath;
       }
@@ -136,7 +137,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 children: [
                   CircleAvatar(
                     radius: 48,
-                    backgroundImage: _photo == null ? null : FileImage(_photo!),
+                    backgroundImage: _photo == null ? null : MemoryImage(_photo!),
                     child: _photo == null ? const Icon(Icons.person, size: 48) : null,
                   ),
                   Positioned(

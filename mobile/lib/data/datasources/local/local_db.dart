@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
@@ -87,10 +88,79 @@ class LocalDay {
   final DateTime? checkInAt, checkOutAt;
 }
 
-/// SQLite storage for the offline attendance queue and location samples (proposal §4.4).
-class LocalDb {
-  LocalDb._();
-  static final instance = LocalDb._();
+/// Offline storage for the attendance queue and location samples (proposal §4.4).
+/// SQLite on phones; in-memory in the browser (web is used for local demos only).
+abstract class LocalDb {
+  static final LocalDb instance = kIsWeb ? MemoryLocalDb() : SqliteLocalDb();
+
+  Future<void> enqueueAttendance(QueuedAttendance e);
+  Future<List<QueuedAttendance>> pendingAttendance(String uid, {int limit = 50});
+  Future<void> deleteAttendance(List<String> ids);
+  Future<void> markAttendanceAttempt(List<String> ids, String error);
+  Future<void> enqueuePoint(String uid, QueuedPoint pt);
+  Future<List<QueuedPoint>> pendingPoints(String uid, {int limit = 200});
+  Future<void> deletePoints(List<String> ids);
+  Future<({int events, int points})> pendingCounts(String uid);
+  Future<LocalDay?> getLocalDay(String uid, String dateKey);
+  Future<void> recordLocalDay(String uid, String dateKey, {DateTime? checkInAt, DateTime? checkOutAt});
+}
+
+/// In-memory implementation for the browser. Data is lost on page reload.
+class MemoryLocalDb implements LocalDb {
+  final _events = <String, QueuedAttendance>{};
+  final _points = <String, ({String uid, QueuedPoint point})>{};
+  final _days = <String, LocalDay>{};
+
+  @override
+  Future<void> enqueueAttendance(QueuedAttendance e) async => _events.putIfAbsent(e.id, () => e);
+
+  @override
+  Future<List<QueuedAttendance>> pendingAttendance(String uid, {int limit = 50}) async =>
+      (_events.values.where((e) => e.uid == uid).toList()..sort((a, b) => a.deviceTime.compareTo(b.deviceTime)))
+          .take(limit)
+          .toList();
+
+  @override
+  Future<void> deleteAttendance(List<String> ids) async => ids.forEach(_events.remove);
+
+  @override
+  Future<void> markAttendanceAttempt(List<String> ids, String error) async {}
+
+  @override
+  Future<void> enqueuePoint(String uid, QueuedPoint pt) async => _points.putIfAbsent(pt.id, () => (uid: uid, point: pt));
+
+  @override
+  Future<List<QueuedPoint>> pendingPoints(String uid, {int limit = 200}) async =>
+      (_points.values.where((p) => p.uid == uid).map((p) => p.point).toList()
+            ..sort((a, b) => a.capturedAt.compareTo(b.capturedAt)))
+          .take(limit)
+          .toList();
+
+  @override
+  Future<void> deletePoints(List<String> ids) async => ids.forEach(_points.remove);
+
+  @override
+  Future<({int events, int points})> pendingCounts(String uid) async => (
+        events: _events.values.where((e) => e.uid == uid).length,
+        points: _points.values.where((p) => p.uid == uid).length,
+      );
+
+  @override
+  Future<LocalDay?> getLocalDay(String uid, String dateKey) async => _days['$uid|$dateKey'];
+
+  @override
+  Future<void> recordLocalDay(String uid, String dateKey, {DateTime? checkInAt, DateTime? checkOutAt}) async {
+    final existing = _days['$uid|$dateKey'];
+    _days['$uid|$dateKey'] = LocalDay(
+      checkInAt: checkInAt ?? existing?.checkInAt,
+      checkOutAt: checkOutAt ?? existing?.checkOutAt,
+    );
+  }
+}
+
+/// SQLite implementation used on Android/iOS.
+class SqliteLocalDb implements LocalDb {
+  SqliteLocalDb();
 
   Future<Database>? _opening;
   Future<Database> get _db => _opening ??= _open();
@@ -125,11 +195,13 @@ class LocalDb {
 
   // ---- Attendance queue ----
 
+  @override
   Future<void> enqueueAttendance(QueuedAttendance e) async {
     final db = await _db;
     await db.insert('attendance_queue', e.toRow(), conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
+  @override
   Future<List<QueuedAttendance>> pendingAttendance(String uid, {int limit = 50}) async {
     final db = await _db;
     final rows = await db.query('attendance_queue',
@@ -137,6 +209,7 @@ class LocalDb {
     return rows.map(QueuedAttendance.fromRow).toList();
   }
 
+  @override
   Future<void> deleteAttendance(List<String> ids) async {
     if (ids.isEmpty) return;
     final db = await _db;
@@ -144,6 +217,7 @@ class LocalDb {
         where: 'id IN (${List.filled(ids.length, '?').join(',')})', whereArgs: ids);
   }
 
+  @override
   Future<void> markAttendanceAttempt(List<String> ids, String error) async {
     if (ids.isEmpty) return;
     final db = await _db;
@@ -156,6 +230,7 @@ class LocalDb {
 
   // ---- Location queue ----
 
+  @override
   Future<void> enqueuePoint(String uid, QueuedPoint pt) async {
     final db = await _db;
     await db.insert(
@@ -172,6 +247,7 @@ class LocalDb {
     );
   }
 
+  @override
   Future<List<QueuedPoint>> pendingPoints(String uid, {int limit = 200}) async {
     final db = await _db;
     final rows = await db.query('location_queue',
@@ -187,6 +263,7 @@ class LocalDb {
         .toList();
   }
 
+  @override
   Future<void> deletePoints(List<String> ids) async {
     if (ids.isEmpty) return;
     final db = await _db;
@@ -194,6 +271,7 @@ class LocalDb {
         where: 'id IN (${List.filled(ids.length, '?').join(',')})', whereArgs: ids);
   }
 
+  @override
   Future<({int events, int points})> pendingCounts(String uid) async {
     final db = await _db;
     final e = Sqflite.firstIntValue(
@@ -207,6 +285,7 @@ class LocalDb {
 
   // ---- Local day state ----
 
+  @override
   Future<LocalDay?> getLocalDay(String uid, String dateKey) async {
     final db = await _db;
     final rows = await db.query('local_days', where: 'uid = ? AND date_key = ?', whereArgs: [uid, dateKey]);
@@ -216,6 +295,7 @@ class LocalDb {
     return LocalDay(checkInAt: t(r['check_in_at']), checkOutAt: t(r['check_out_at']));
   }
 
+  @override
   Future<void> recordLocalDay(String uid, String dateKey, {DateTime? checkInAt, DateTime? checkOutAt}) async {
     final db = await _db;
     final existing = await getLocalDay(uid, dateKey);

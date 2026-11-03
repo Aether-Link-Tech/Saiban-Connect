@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -15,6 +16,9 @@ class BiometricService {
   final _auth = LocalAuthentication();
 
   Future<BiometricResult> authenticate(String reason) async {
+    if (kIsWeb) {
+      return const BiometricResult(BiometricOutcome.unavailable, 'Biometrics are not available in a web browser.');
+    }
     try {
       final supported = await _auth.isDeviceSupported();
       final canCheck = await _auth.canCheckBiometrics;
@@ -45,6 +49,8 @@ class BiometricService {
         default:
           return BiometricResult(BiometricOutcome.failed, e.message ?? 'Biometric verification failed.');
       }
+    } on MissingPluginException {
+      return const BiometricResult(BiometricOutcome.unavailable, 'Biometrics are not supported on this platform.');
     }
   }
 }

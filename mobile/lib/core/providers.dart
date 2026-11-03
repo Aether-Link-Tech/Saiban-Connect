@@ -15,18 +15,25 @@ import '../shared/services/location_service.dart';
 import '../shared/services/push_service.dart';
 import '../shared/services/sync_service.dart';
 import '../shared/services/tracking_service.dart';
+import 'config/env.dart';
 import 'constants/app_constants.dart';
 import 'utils/formatters.dart';
 
 final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
-FirebaseFirestore get fs => FirebaseFirestore.instance;
+/// Set by widget tests to use an in-memory Firestore.
+@visibleForTesting
+FirebaseFirestore? firestoreOverride;
+
+FirebaseFirestore get fs => firestoreOverride ?? FirebaseFirestore.instance;
 
 // ---------- Services ----------
 
-final apiProvider = Provider<FunctionsApi>(
-  (ref) => FunctionsApi(FirebaseFunctions.instanceFor(region: AppConstants.functionsRegion)),
-);
+final apiProvider = Provider<FunctionsApi>((ref) {
+  final functions = FirebaseFunctions.instanceFor(region: AppConstants.functionsRegion);
+  if (Env.useEmulator) functions.useFunctionsEmulator(Env.emulatorHost, 5001);
+  return FunctionsApi(functions);
+});
 final localDbProvider = Provider<LocalDb>((ref) => LocalDb.instance);
 final biometricProvider = Provider<BiometricService>((ref) => BiometricService());
 final locationServiceProvider = Provider<LocationService>((ref) => LocationService());

@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/config/env.dart';
 import '../../data/datasources/firebase/functions_api.dart';
 
 /// Registers this phone for push notifications and shows foreground messages.
@@ -16,6 +18,8 @@ class PushService {
   String? _token;
 
   Future<void> start() async {
+    // FCM isn't available in the emulator suite, and web push needs extra setup.
+    if (Env.useEmulator || kIsWeb) return;
     try {
       final messaging = FirebaseMessaging.instance;
       await messaging.requestPermission();
