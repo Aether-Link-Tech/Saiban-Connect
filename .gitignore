@@ -24,3 +24,4 @@ mobile/lib/firebase_options.dart
 
 # Functions build output
 backend/functions/lib/
+mobile/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
